@@ -1,0 +1,10 @@
+pandas
+Flask
+biopython
+joblib
+numpy
+torch
+esm
+transformers
+gunicorn
+
