@@ -1,0 +1,8 @@
+pandas
+Flask
+biopython
+joblib
+numpy
+torch
+esm
+gunicorn
