@@ -1,6 +1,3 @@
-# patched_app.py
-
-#pip install pandas Flask biopython
 import os
 import io
 import csv
@@ -9,10 +6,10 @@ import pandas as pd
 import joblib
 import numpy as np
 import torch
-import esm
 import logging
 from flask import Flask, request, render_template, send_file, session, redirect, url_for
 from Bio.Seq import Seq
+from transformers import EsmModel, EsmTokenizer
 
 # logging
 logging.basicConfig(
@@ -22,17 +19,17 @@ logging.basicConfig(
 )
 
 # ---------- Paths ----------
-BASE_DIR = r"D:\Research\pythonProject"
+BASE_DIR = os.getcwd()  # Use current working directory for relative paths
 MODEL_PATH = os.path.join(BASE_DIR, "best_model_LR.sav")
 ENCODER_PATH = os.path.join(BASE_DIR, "label_encoder.pkl")
 
-BLAST_PATH = r"D:\Research\pythonProject\ncbi\blast-2.17.0+\bin\blastp.exe"
-BLAST_DB = r"D:\Research\pythonProject\pathway_db"
-MAPPING_FILE = r"D:\Research\pythonProject\pathway_map.csv"
+BLAST_PATH = os.path.join(BASE_DIR, "ncbi", "blast-2.17.0+", "bin", "blastp.exe")
+BLAST_DB = os.path.join(BASE_DIR, "pathway_db")
+MAPPING_FILE = os.path.join(BASE_DIR, "pathway_map.csv")
 BITSCORE_THRESHOLD = 80.0
 CONFIDENCE_THRESHOLD = 0.7  
 
-RESULT_CSV = os.path.join(os.getcwd(), "combined_results.csv")
+RESULT_CSV = os.path.join(BASE_DIR, "combined_results.csv")
 
 # Minimum length thresholds
 MIN_PROTEIN_LENGTH = 50
@@ -59,10 +56,14 @@ except Exception:
     logging.exception("Failed to load label encoder")
 
 try:
-    esm_model, alphabet = esm.pretrained.load_model_and_alphabet("esm2_t6_8M_UR50D")
+    model_name = "facebook/esm2_t6_8M_UR50D"
+    # Load model and tokenizer from Hugging Face
+    esm_model = EsmModel.from_pretrained(model_name)
+    tokenizer = EsmTokenizer.from_pretrained(model_name)
+
     esm_model.eval()
-    esm_model = esm_model.to("cpu")
-    batch_converter = alphabet.get_batch_converter()
+    esm_model = esm_model.to("cpu")  # Move model to CPU
+    batch_converter = tokenizer
     logging.info("ESM2 model loaded and set to CPU.")
 except Exception:
     logging.exception("Failed to load ESM model")
@@ -108,9 +109,12 @@ def detect_and_translate(seq):
 def esm2_320_embed(sequence):
     if esm_model is None or batch_converter is None:
         raise RuntimeError("ESM model not available")
-    batch_labels, batch_strs, batch_tokens = batch_converter([("seq1", sequence)])
+    
+    # Tokenize the input sequence
+    inputs = batch_converter(["seq1", sequence])
     with torch.no_grad():
-        results = esm_model(batch_tokens, repr_layers=[6], return_contacts=False)
+        results = esm_model(inputs['input_ids'], repr_layers=[6], return_contacts=False)
+    
     token_representations = results["representations"][6]
     seq_repr = token_representations[0, 1:-1].detach().cpu().numpy()
     return seq_repr.mean(axis=0)
@@ -243,7 +247,7 @@ def index():
             gene_preds = ["Unknown"] * len(filtered_sequences)
 
         # --- Save fasta for BLAST ---
-        temp_fasta = os.path.join(os.getcwd(), "temp_input.fasta")
+        temp_fasta = os.path.join(BASE_DIR, "temp_input.fasta")
         header_map = {}
         with open(temp_fasta, "w") as f:
             for h, s in zip(filtered_headers, filtered_sequences):
@@ -252,7 +256,7 @@ def index():
                 f.write(f">{safe_h}\n{s}\n")
 
         # --- Run BLAST ---
-        blast_output = os.path.join(os.getcwd(), "blast_results.txt")
+        blast_output = os.path.join(BASE_DIR, "blast_results.txt")
         blast_df = run_blast_and_get_dataframe(temp_fasta, blast_output)
 
         # --- Mapping file ---
