@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AbStrPred - Predict Gene Families & Pathways from Protein Sequences</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            --text-color: #333;
+            --header-bg: #e7eef3ff;
+            --header-text: #333;
+            --navbar-bg: #fff;
+            --navbar-border: #667eea;
+            --card-bg: #ffffff;
+            --card-text: #000;
+            --form-bg: #ffffff;
+            --form-text: #000;
+            --result-bg: #ffffff;
+            --result-text: #000;
+            --table-head-bg: linear-gradient(to right, #667eea, #764ba2);
+            --table-head-text: #fff;
+            --table-hover: #f8f9fa;
+            --btn-primary-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --btn-primary-hover: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            --btn-download-bg: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            --btn-download-hover: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+            --shadow-light: rgba(0,0,0,0.1);
+            --shadow-dark: rgba(0,0,0,0.15);
+            --border-color: #ddd;
+            --focus-border: #667eea;
+            --focus-shadow: rgba(102,126,234,0.3);
+            --icon-color: #667eea;
+            --icon-hover: #764ba2;
+            --h3-color: #667eea;
+            --h2-color: #333;
+            --font-family: 'Inter', sans-serif;
+        }
+
+        body.dark {
+            --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --text-color: #e0e0e0;
+            --header-bg: #2a2a3a;
+            --header-text: #e0e0e0;
+            --navbar-bg: #2a2a3a;
+            --navbar-border: #667eea;
+            --card-bg: #2a2a3a;
+            --card-text: #e0e0e0;
+            --form-bg: #2a2a3a;
+            --form-text: #e0e0e0;
+            --result-bg: #2a2a3a;
+            --result-text: #e0e0e0;
+            --table-head-bg: linear-gradient(to right, #4a5e9a, #5a3e7a);
+            --table-head-text: #e0e0e0;
+            --table-hover: #3a3a4a;
+            --btn-primary-bg: linear-gradient(135deg, #4a5e9a 0%, #5a3e7a 100%);
+            --btn-primary-hover: linear-gradient(135deg, #5a3e7a 0%, #4a5e9a 100%);
+            --btn-download-bg: linear-gradient(135deg, #1e7e34 0%, #1a9c7a 100%);
+            --btn-download-hover: linear-gradient(135deg, #1a9c7a 0%, #1e7e34 100%);
+            --shadow-light: rgba(0,0,0,0.3);
+            --shadow-dark: rgba(0,0,0,0.4);
+            --border-color: #444;
+            --focus-border: #667eea;
+            --focus-shadow: rgba(102,126,234,0.5);
+            --icon-color: #a0bfff;
+            --icon-hover: #b0c0ff;
+            --h3-color: #a0bfff;
+            --h2-color: #e0e0e0;
+            --font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            font-family: var(--font-family);
+            color: var(--text-color);
+            min-height: 100vh;
+            scroll-behavior: smooth;
+        }
+        .header {
+            padding: 20px 0;
+            background: var(--header-bg);
+            color: var(--header-text);
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px var(--shadow-light);
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        .header-logos {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .institute-logo {
+            height: 200px;
+            width: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .institute-logo:hover {
+            transform: scale(1.05);
+        }
+        .main-logo-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .main-logo {
+            height: 220px;
+            width: 400px;
+            border-radius: 15px;
+            border: 3px solid #667eea;
+            background: #ffffff;
+            padding: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .main-logo:hover {
+            transform: scale(1.02);
+        }
+        .header h1 {
+            font-size: 3rem;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            animation: fadeInUp 1s ease-out;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .navbar {
+            background-color: var(--navbar-bg);
+            border-bottom: 2px solid var(--navbar-border);
+            box-shadow: 0 2px 10px var(--shadow-light);
+        }
+        .navbar-nav .nav-link {
+            color: var(--text-color) !important;
+            font-weight: 500;
+            font-family: var(--font-family);
+            transition: color 0.3s ease;
+        }
+        .navbar-nav .nav-link:hover {
+            color: var(--icon-color) !important;
+        }
+        .dropdown-menu {
+            background-color: var(--card-bg);
+            border: none;
+            box-shadow: 0 4px 15px var(--shadow-light);
+        }
+        .dropdown-item {
+            color: var(--text-color);
+            font-family: var(--font-family);
+            transition: background-color 0.3s ease;
+        }
+        .dropdown-item:hover {
+            background-color: var(--table-hover);
+        }
+        .section {
+            min-height: 100vh;
+            padding: 80px 0;
+            transition: all 0.5s ease;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--h2-color);
+            font-weight: 700;
+            font-family: var(--font-family);
+        }
+        h3 {
+            color: var(--h3-color);
+            margin-bottom: 20px;
+            font-family: var(--font-family);
+        }
+        .form-card {
+            border-radius: 15px;
+            background-color: var(--form-bg);
+            color: var(--form-text);
+            padding: 30px;
+            box-shadow: 0 8px 25px var(--shadow-light);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .form-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px var(--shadow-dark);
+        }
+        .form-control {
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.3s ease-in-out;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-family: var(--font-family);
+        }
+        .form-control:focus {
+            border-color: var(--focus-border);
+            box-shadow: 0 0 10px var(--focus-shadow);
+            outline: none;
+        }
+        .sequence-textarea {
+            font-family: 'Courier New', monospace;
+            background-color: var(--table-hover);
+        }
+        .btn-primary {
+            background: var(--btn-primary-bg);
+            border: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: var(--btn-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--focus-shadow);
+        }
+        .result-card {
+            border-radius: 15px;
+            background-color: var(--result-bg);
+            color: var(--result-text);
+            padding: 30px;
+            box-shadow: 0 8px 25px var(--shadow-light);
+            margin-top: 20px;
+            transition: transform 0.3s ease;
+        }
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+        .table-gradient thead {
+            background: var(--table-head-bg);
+            color: var(--table-head-text);
+        }
+        .table-hover tbody tr:hover {
+            background-color: var(--table-hover);
+            transition: background-color 0.3s ease;
+        }
+        .top-hit-cell, .bitscore-cell, .pathway-cell, .pred-cell {
+            font-weight: 600;
+        }
+        .btn-download {
+            background: var(--btn-download-bg);
+            color: #fff;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn-download:hover {
+            background: var(--btn-download-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(40,167,69,0.4);
+        }
+        .section-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .carousel-item img {
+            border-radius: 10px;
+            transition: transform 0.5s ease;
+        }
+        .carousel-item img:hover {
+            transform: scale(1.05);
+        }
+        .icon {
+            margin-right: 10px;
+            color: var(--icon-color);
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        .icon:hover {
+            transform: scale(1.2);
+            color: var(--icon-hover);
+        }
+        .animated-icon {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+        .scroll-reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .database-img {
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        .database-img:hover {
+            transform: scale(1.05);
+        }
+        .passport-photo {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 3px solid #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin: 0 auto 15px auto;
+            display: block;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .passport-photo:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+        .developer-card {
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .developer-card .card-body {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .developer-card .card-text {
+            text-align: center;
+        }
+
+        .contact-card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .contact-card .card-body {
+            flex-grow: 1;
+        }
+        p {
+            text-align: justify;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            color: var(--icon-color);
+        }
+        .theme-toggle:hover {
+            color: var(--icon-hover);
+        }
+
+        .external-link-card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px var(--shadow-light);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .external-link-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px var(--shadow-dark);
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px 20px;
+            font-family: 'Arial', sans-serif;
+            border-top: 3px solid #1abc9c;
+        }
+
+        .footer-content {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+        }
+
+        .footer-section {
+            margin-bottom: 20px;
+        }
+
+        .footer-section h3 {
+            color: #1abc9c;
+            margin-bottom: 15px;
+        }
+
+        .footer-section p {
+            line-height: 1.6;
+        }
+
+        .footer-section a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-section a:hover {
+            color: #1abc9c;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-logos">
+                <img src="{{ url_for('static', filename='pictures/icar.gif') }}" alt="ICAR Logo" class="institute-logo">
+            </div>
+            <div class="main-logo-container">
+                <img src="{{ url_for('static', filename='pictures/ABSH.png') }}" alt="AbStrPred Logo" class="main-logo">
+            </div>
+            <div class="header-logos">
+                <img src="{{ url_for('static', filename='pictures/IASRI2.jpg') }}" alt="IASRI Logo" class="institute-logo">
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#home"><i class="fas fa-home icon animated-icon"></i>HOME</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="predictionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-chart-line icon animated-icon"></i>Prediction
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="predictionDropdown">
+                            <li><a class="dropdown-item" href="#tool"><i class="fas fa-tools icon"></i>Tool</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#external-links"><i class="fas fa-external-link-alt icon animated-icon"></i>External Links</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#developers"><i class="fas fa-users icon animated-icon"></i>Developers</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact"><i class="fas fa-envelope icon animated-icon"></i>Contact</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <button class="theme-toggle" id="themeToggle" title="Toggle Dark/Light Mode">
+                            <i class="fas fa-sun" id="themeIcon"></i>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Home Section -->
+    <div id="home" class="section scroll-reveal">
+        <div class="container">
+            <h2>Welcome to AbStrPred</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <!-- Enhanced Database Animation Carousel -->
+                    <div id="imageCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <div class="database-animation-container">
+                                    <img src="{{ url_for('static', filename='pictures/ABSTR1.jpg') }}" class="d-block w-100 database-img" alt="AbStrPred Database">
+                                    <div class="animation-overlay">
+                                        <div class="dna-helix">
+                                            <div class="dna-strand"></div>
+                                            <div class="dna-strand"></div>
+                                        </div>
+                                        <div class="floating-elements">
+                                            <i class="fas fa-database floating-db"></i>
+                                            <i class="fas fa-dna floating-dna"></i>
+                                            <i class="fas fa-project-diagram floating-network"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="database-animation-container">
+                                    <img src="{{ url_for('static', filename='pictures/flowchart.jpg') }}" class="d-block w-100 database-img" alt="Bioinformatics Analysis">
+                                    <div class="animation-overlay">
+                                        <div class="neural-network">
+                                            <div class="node"></div>
+                                            <div class="node"></div>
+                                            <div class="node"></div>
+                                            <div class="node"></div>
+                                            <div class="connection"></div>
+                                            <div class="connection"></div>
+                                            <div class="connection"></div>
+                                        </div>
+                                        <div class="floating-elements">
+                                            <i class="fas fa-robot floating-ai"></i>
+                                            <i class="fas fa-chart-line floating-chart"></i>
+                                            <i class="fas fa-cog floating-gear"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="database-animation-container">
+                                    <img src="{{ url_for('static', filename='pictures/ABSTR1.jpg') }}" class="d-block w-100 database-img" alt="Gene Prediction">
+                                    <div class="animation-overlay">
+                                        <div class="protein-structure">
+                                            <div class="protein-helix"></div>
+                                            <div class="protein-sheet"></div>
+                                        </div>
+                                        <div class="floating-elements">
+                                            <i class="fas fa-atom floating-atom"></i>
+                                            <i class="fas fa-microscope floating-microscope"></i>
+                                            <i class="fas fa-flask floating-flask"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="carousel-item">
+                                <div class="database-animation-container">
+                                    <img src="{{ url_for('static', filename='pictures/flowchart.jpg') }}" class="d-block w-100 database-img" alt="Pathway Analysis">
+                                    <div class="animation-overlay">
+                                        <div class="pathway-network">
+                                            <div class="pathway-node"></div>
+                                            <div class="pathway-node"></div>
+                                            <div class="pathway-node"></div>
+                                            <div class="pathway-node"></div>
+                                            <div class="pathway-node"></div>
+                                            <div class="pathway-connection"></div>
+                                            <div class="pathway-connection"></div>
+                                            <div class="pathway-connection"></div>
+                                            <div class="pathway-connection"></div>
+                                        </div>
+                                        <div class="floating-elements">
+                                            <i class="fas fa-project-diagram floating-pathway"></i>
+                                            <i class="fas fa-sitemap floating-structure"></i>
+                                            <i class="fas fa-route floating-route"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#imageCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#imageCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h3>BACKGROUND</h3>
+                    <p>Abiotic stresses such as drought, salinity, and heat severely affect plant growth and productivity, making the identification of stress-responsive genes vital for crop improvement. Existing experimental approaches for gene family classification and pathway mapping are database reliant, labour-intensive and time consuming. AbStrPred addresses this gap by providing a computational framework to predict abiotic stress-related gene families along with their associated pathways. This enables faster insights into stress tolerance mechanisms and supports targeted research in plant stress biology.</p>
+                    <h3>ABOUT</h3>
+                    <p>The AbStrPred server is an advanced AI-based tool designed to predict specific abiotic stress-related gene families, including SPL, NAC, bZIP, HSP, AP2/ERF, SnRK2, DREB/CBF, WRKY, MYB, LEA, and SBT, and their associated pathways directly from nucleotide or protein sequences. It leverages ESM2 transformer-based NLP embeddings for robust feature extraction and employs a Logistic Regression model for accurate classification of these targeted gene families. For pathway prediction, AbStrPred integrates local BLAST searches with a curated database of abiotic stress-related pathways, ensuring biologically relevant results. The server supports both single sequence input and FASTA file uploads, making it versatile for diverse research needs. Users can also download prediction results in CSV format, enabling easy integration into downstream analyses and accelerating research in functional genomics and stress-adaptation studies.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tool Section -->
+    <div id="tool" class="section scroll-reveal">
+        <div class="container">
+            <h2>Prediction Tool</h2>
+
+            <!-- Input Form -->
+            <div class="form-card mb-4">
+                <form action="{{ url_for('index') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Upload FASTA file (optional):</label>
+                        <input type="file" class="form-control" name="fasta_file" accept=".fasta,.fa,.txt">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Or paste FASTA sequences manually:</label>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">Example sequence available for testing</small>
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="loadExampleSequence()">
+                                <i class="fas fa-copy"></i> Load Example Sequence
+                            </button>
+                        </div>
+                    <textarea class="form-control sequence-textarea" name="sequence_text" rows="8" id="sequence_text"
+                              placeholder=">Seq 1&#10;MST...............&#10;>Seq 2&#10;ATGC..............&#10;&#10;&#10;&#10;Or paste your own sequence(s) in FASTA format..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Note: You can upload either Nucleotide or Protein sequences in FASTA format.</small>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Predict</button>
+                </form>
+            </div>
+
+            <!-- Prediction Results -->
+            {% if predictions %}
+                <div id="prediction-results" class="result-card">
+                    <h4>Predictions:</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-gradient mt-3 table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Query/Header</th>
+                                    <th>Top Hit</th>
+                                    <th>Bitscore</th>
+                                    <th>Pathways</th>
+                                    <th>Predicted Gene Family</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in predictions %}
+                                    <tr>
+                                        <td>{{ row[0] }}</td>
+                                        <td class="top-hit-cell">{{ row[1] }}</td>
+                                        <td class="bitscore-cell">{{ row[2] }}</td>
+                                        <td class="pathway-cell">{{ row[3] }}</td>
+                                        <td class="pred-cell">{{ row[4] }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="{{ url_for('download_csv') }}" class="btn btn-download mt-3">Download CSV</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- External Links Section -->
+    <div id="external-links" class="section scroll-reveal">
+        <div class="container">
+            <h2>External Links</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="external-link-card">
+                        <h4>Protein Family Sequence and Pathway Data</h4>
+                        <ul class="list-unstyled">
+                            <li><a href="http://pfam.xfam.org/" target="_blank" class="text-decoration-none"><i class="fas fa-external-link-alt icon animated-icon"></i>Pfam</a></li>
+                            <li><a href="https://www.genome.jp/kegg/pathway.html" target="_blank" class="text-decoration-none"><i class="fas fa-external-link-alt icon animated-icon"></i>KEGG Pathway</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="external-link-card">
+                        <h4>Explore Our Institutes</h4>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-university icon animated-icon"></i>ICAR-Indian Agricultural Statistics Research Institute, New Delhi</li>
+                            <li><i class="fas fa-dna icon animated-icon"></i>Division of Agricultural Bioinformatics, New Delhi</li>
+                            <li><i class="fas fa-server icon animated-icon"></i>Super Computing Facility</li>
+                            <li><i class="fas fa-microchip icon animated-icon"></i>Advanced Supercomputing Hub for OMICS Knowledge in Agriculture (ASHOKA)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="external-link-card">
+                        <h4>Sample Sequences</h4>
+                        <ul class="list-unstyled">
+                            <li><a href="{{ url_for('static', filename='pictures/Sample_Nucleotide.fasta') }}" download class="text-decoration-none"><i class="fas fa-download icon animated-icon"></i>Download Sample Nucleotide Sequence</a></li>
+                            <li><a href="{{ url_for('static', filename='pictures/Sample_Protein.fasta') }}" download class="text-decoration-none"><i class="fas fa-download icon animated-icon"></i>Download Sample Protein Sequence</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Developers Section -->
+    <div id="developers" class="section scroll-reveal">
+        <div class="container">
+            <h2>Developers</h2>
+            <p class="section-content">Meet the team behind AbStrPred.</p>
+            <div class="row justify-content-center">
+                <div class="col-md-4 mb-4">
+                    <div class="card developer-card" style="border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <img src="{{ url_for('static', filename='pictures/shiva.png') }}" class="passport-photo" alt="Mr. Shivadarshan S Jirli">
+                        <div class="card-body">
+                            <h5 class="card-title">Mr. Shivadarshan S Jirli</h5>
+                            <p class="card-text">Ph.D. Scholar<br>Division of Agricultural Bioinformatics<br>ICAR-IASRI, New Delhi<br><i class="fas fa-envelope icon animated-icon"></i> shivadarshanjirli5143@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card developer-card" style="border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <img src="{{ url_for('static', filename='pictures/sharan_photo.jpg') }}" class="passport-photo" alt="Dr. Sharanbasappa">
+                        <div class="card-body">
+                            <h5 class="card-title">Dr. Sharanbasappa</h5>
+                            <p class="card-text">Scientist<br>Division of Agricultural Bioinformatics<br>ICAR-IASRI, New Delhi<br><i class="fas fa-envelope icon animated-icon"></i> smadival509@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card developer-card" style="border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <img src="{{ url_for('static', filename='pictures/Grover.jpg') }}" class="passport-photo" alt="Dr. Monendra Grover">
+                        <div class="card-body">
+                            <h5 class="card-title">Dr. Monendra Grover</h5>
+                            <p class="card-text">Principal Scientist<br>Division of Agricultural Bioinformatics<br>ICAR-IASRI, New Delhi<br><i class="fas fa-envelope icon animated-icon"></i> monendra.grover@icar.gov.in</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card developer-card" style="border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <img src="{{ url_for('static', filename='pictures/Mishra Sir.jpg') }}" class="passport-photo" alt="Dr. Dwijesh Chandra Mishra">
+                        <div class="card-body">
+                            <h5 class="card-title">Dr. Dwijesh Chandra Mishra</h5>
+                            <p class="card-text">Senior Scientist<br>Division of Agricultural Bioinformatics<br>ICAR-IASRI, New Delhi<br><i class="fas fa-envelope icon animated-icon"></i> dwij.mishra@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
+
+                 <div class="col-md-4 mb-4">
+                    <div class="card developer-card" style="border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <img src="{{ url_for('static', filename='pictures/kkc.jpg') }}" class="passport-photo" alt="Dr. Dwijesh Chandra Mishra">
+                        <div class="card-body">
+                            <h5 class="card-title">Dr. Krishna Kumar  Chaturvedi</h5>
+                            <p class="card-text">Principal Scientist<br>IT Unit<br>ICAR-IASRI, New Delhi<br><i class="fas fa-envelope icon animated-icon"></i> kkcchaturvedi@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="col-md-4 mb-4">
+                    <div class="card developer-card" style="border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <img src="{{ url_for('static', filename='pictures/sblal.png') }}" class="passport-photo" alt="Dr. Dwijesh Chandra Mishra">
+                        <div class="card-body">
+                            <h5 class="card-title">Dr. Shashi Bhushan Lal</h5>
+                            <p class="card-text">Principal Scientist<br>IT Unit<br>ICAR-IASRI, New Delhi<br><i class="fas fa-envelope icon animated-icon"></i> sblall16@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card developer-card" style="border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <img src="{{ url_for('static', filename='pictures/dramit.png') }}" class="passport-photo" alt="Dr. Amit Kumar Singh">
+                        <div class="card-body">
+                            <h5 class="card-title">Dr. Amit Kumar Singh</h5>
+                            <p class="card-text">Principal Scientist<br>Division of Genomic Resources<br>ICAR-NBPGR, New Delhi<br><i class="fas fa-envelope icon animated-icon"></i> Amit.Singh5@icar.org.in</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card developer-card" style="border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <img src="{{ url_for('static', filename='pictures/yuvraj.jpeg') }}" class="passport-photo" alt="Mr. Shivadarshan S Jirli">
+                        <div class="card-body">
+                            <h5 class="card-title">Mr. Yuvraj Singh</h5>
+                            <p class="card-text">Young Professional 2(IT)<br>Division of Agricultural Bioinformatics<br>ICAR-IASRI, New Delhi<br><i class="fas fa-envelope icon animated-icon"></i> visitiasriyuvraj@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card developer-card" style="border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <img src="{{ url_for('static', filename='pictures/sneh.jpeg') }}" class="passport-photo" alt="Mr. Shivadarshan S Jirli">
+                        <div class="card-body">
+                            <h5 class="card-title">Mr. Snehasis Mallik</h5>
+                            <p class="card-text">Ph.D. Scholar<br>Division of Agricultural Bioinformatics<br>ICAR-IASRI, New Delhi<br><i class="fas fa-envelope icon animated-icon"></i> msnehasis19@gmai.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Section -->
+    <div id="contact" class="section scroll-reveal">
+        <div class="container">
+            <h2>Contact Information</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card contact-card mb-4" style="border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-user-tie icon animated-icon"></i>Professor, Discipline of Bioinformatics, Graduate School</h5>
+                            <p class="card-text">ICAR-Indian Agricultural Statistics Research Institute<br>Pusa, New Delhi-110012<br><i class="fas fa-envelope icon animated-icon"></i>aijaiswal@gmail.com</p>
+                        </div>
+                    </div>
+                </div>
+               <div class="col-md-4">
+                    <div class="card contact-card mb-4" style="border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-user-tie icon animated-icon"></i>Director, ICAR-IASRI</h5>
+                            <p class="card-text">ICAR-Indian Agricultural Statistics Research Institute<br>Pusa, New Delhi-110012<br><i class="fas fa-envelope icon animated-icon"></i> rajenderparsad.iasri@icar.org.in</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card contact-card mb-4" style="border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="fas fa-user icon animated-icon"></i>Head, Division of Agricultural Bioinformatics</h5>
+                            <p class="card-text">ICAR-Indian Agricultural Statistics Research Institute<br>Pusa, New Delhi-110012<br><i class="fas fa-envelope icon animated-icon"></i> girish.jha@icar.org.in</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Scroll reveal animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        });
+
+        document.querySelectorAll('.scroll-reveal').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Smooth scroll to results functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if URL has fragment for results
+            if (window.location.hash === '#prediction-results') {
+                const resultsElement = document.getElementById('prediction-results');
+                if (resultsElement) {
+                    // Smooth scroll to results
+                    resultsElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+
+                    // Add a subtle highlight effect
+                    resultsElement.style.animation = 'fadeIn 0.5s ease-in';
+                }
+            }
+        });
+
+        // Handle form submission with loading state
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+
+            // Add loading state
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            submitBtn.disabled = true;
+
+            // Add fragment to URL for smooth scroll after reload
+            window.location.hash = '#prediction-results';
+        });
+
+        // Clear results when page is refreshed (browser back/forward)
+        window.addEventListener('beforeunload', function() {
+            // Remove hash when leaving the page
+            if (window.location.hash === '#prediction-results') {
+                history.replaceState(null, null, window.location.pathname);
+            }
+        });
+
+        // Theme toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+
+            // Load saved theme
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                body.classList.add('dark');
+                themeIcon.className = 'fas fa-sun';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+            }
+
+            // Toggle theme
+            themeToggle.addEventListener('click', function() {
+                body.classList.toggle('dark');
+                const isDark = body.classList.contains('dark');
+                themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            });
+        });
+
+        // Load example sequence function
+        function loadExampleSequence() {
+            const exampleSequence = `>ONI13596.1
+MVYGSLSSTTYSATTMCSDFDTFDERNSGSFEFKPHAGSNMVTTDYNHQR
+NDQLVQGQAQPQSLVSPPLVKSEMAVSSNELSLSAPVHMVTSGASAPPEG
+DSDDLSQRGHPNPGVQTSQFDHKGSGPSVISSDDGYNWRKYGQKHVKGSE
+FPRSYYKCTHPNCEVKKLFERSHDGQITEIIYKGTHDHPKPQPSRRYNTG
+AMMPIQEERSEKASSLIGRDDKPSSIYGQMSSTNEPNSTPERSPVTGNDD
+SVEGTGSLSNRMAEEIDDDDPFSKRRRMDVGGVDVTPVVKPIREPRVVVQ
+TLSEVDILDDGYRWRKYGQKVVRGNPNPRSYYKCTNAGCPVRKHVERASH
+DPKAVITTYEGKHNHDVPTARNSSHDTSGPTTVNGPSRIRSEESDTISLD
+LGVGINSAAENKSNEHLQLHSELMERQSHTSSNFKAIQTTPVSTYYGVLN
+SGMNQYGSRENPSESRSIEIPPLNHSSYPYPQNMGRVLTGP
+>LCA01965.8
+MEGGERIGEDVDLVRSENAAAIGGGSVYQDQEMVDQGDADATNVHSTHTP
+QVEELITPKAKVKNVTEMNNHSVVNSAGEMSGYDETGTAMEREAFMKELE
+SFYRSRSLEFKPPKFYGVPLNCLKLWRAVIKLGGYELVTGSKLWRQVGES
+FHPPKTCTTVSWTFRIFYEKALLEYEKHKRETGELQLPVGSLHQPSSVEK
+ETTVYQAPGSGRARRDAAARAMQGWHAQRLLGYGEVAESAVKDKNFSPTP
+KREKNLKSIGVINKQRTPSGMDHADKVANIEGERQLVTAVVDIGPPADWV
+KINVRETKDCFEVYALVPGLLREEVRVQSDPVGRLVITGTPEQVDNPWGI
+TPFKKVVNLPARIDPLQTSAIVSLHGRLFIRVPFEQGAV
+>AAK01953.1 
+MVPSEIRGVHYLAPENPFLVPPNFGLLQNDIPNLHLNTLLSNFPNCHFPP
+SGLEFVAPHSCLSSNSTSDEADEIQFNIIDERKHRRMISNRESARRSRMR
+KQKHLDELWSQVVRLRTENHNLIDKLNHMSDSHDRVLQKNTRLKEEASDL
+RQMLADMQIGISFACTMEELEDLPCNKPGPSNQLITPADMIHE`;
+
+            const textarea = document.getElementById('sequence_text');
+            textarea.value = exampleSequence;
+            textarea.focus();
+
+            // Optional: Show a brief success message
+            const button = event.target.closest('button');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i> Loaded!';
+            button.classList.remove('btn-outline-primary');
+            button.classList.add('btn-success');
+
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-outline-primary');
+            }, 1500);
+        }
+    </script>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Location</h3>
+                <address>
+                    ICAR-Indian Agricultural Statistics Research Institute<br>
+                      Library Avenue Pusa <br>
+                    New Delhi - 110012<br>
+                    India
+                </address>
+            </div>
+
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <p>Email: <a href="shivadarshanjirli5143@gmail.com">shivadarshanjirli5143@gmail.com</a></p>
+            </div>
+
+            <div class="footer-section">
+                <h3>Official Website</h3>
+                <p><a href="https://iasri.res.in/" target="_blank" rel="noopener noreferrer">https://iasri.res.in/</a></p>
+            </div>
+
+            <div class="footer-section" style="text-align: left;">
+                <div style="width: 220px; height: 220px;">
+                    <script type="text/javascript" id="clstr_globe" src="//clustrmaps.com/globe.js?"></script>
+                </div>
+            </div>
+
+            <div class="footer-section" style="text-align: right;">
+                <!-- Empty right section for spacing -->
+            </div>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        &copy; {{ current_year }} ICAR-Indian Agricultural Statistics Research Institute.
+    </div>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# Ignore system files
+Thumbs.db
+Desktop.ini
+
+# IDEs and editor settings
+.vscode/
+.idea/
+
+# Python bytecode files
+*.pyc
+__pycache__/
+
+# Node.js modules
+node_modules/
+
+# macOS system files
+.DS_Store
+
+# Log files
+*.log
+
+# AppData folder (don't track system-specific files)
+AppData/
