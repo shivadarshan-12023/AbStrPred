@@ -1,7 +1,9 @@
 Flask==2.2.2
-torch==2.7.1  # Ensure the compatible PyTorch version
-esm==3.0.0  # Use a valid version of ESM available on PyPI
+torch==2.7.1  # PyTorch version
+esm==3.0.0  # ESM version
 biopython==1.80
+setuptools>=65.0.0  # Ensure setuptools is up-to-date
+wheel>=0.37.0  # To support building wheels for biopython and other packages
 pandas==1.5.3
 numpy==1.23.4
 scikit-learn==1.2.2  # Adjusted for compatibility
