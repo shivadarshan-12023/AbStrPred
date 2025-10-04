@@ -4,8 +4,9 @@ esm==1.0.0  # Custom package, ensure it is included from the source if not on Py
 biopython==1.80
 pandas==1.5.3
 numpy==1.23.4
-scikit-learn==1.0.2
+scikit-learn==1.2.2  # Adjusted for compatibility
 joblib==1.2.0
 requests==2.28.1
 gunicorn==20.1.0
+
 
