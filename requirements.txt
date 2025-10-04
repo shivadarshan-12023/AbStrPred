@@ -1,13 +1,10 @@
-pandas
-Flask
-biopython
-joblib
-numpy
-torch
-esm
-transformers
-gunicorn
-scikit-learn
-setuptools
-wheel
-pip
+Flask==2.2.2
+torch==1.12.1  # Downgraded version of torch to ensure compatibility
+esm==1.0.0  # Custom package, ensure it is included from the source if not on PyPI
+biopython==1.80
+pandas==1.5.3
+numpy==1.23.4
+scikit-learn==1.0.2
+joblib==1.2.0
+requests==2.28.1
+gunicorn==20.1.0
