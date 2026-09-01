@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: bioinformatics-app
+    env: docker
+    plan: standard
+    
+    # Build configuration
+    buildCommand: echo "Docker build configured in Dockerfile"
+    
+    # Port configuration
+    port: 10000
+    
+    # Environment variables - FORCE Python 3.11
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: PYTHONDONTWRITEBYTECODE
+        value: 1
+      - key: PYTHONVERSION
+        value: "3.11"
+    
+    # Health check
+    healthCheckPath: /health
+    healthCheckStartPeriod: 60
+    
+    # Auto-deploy on push
+    autoDeploy: true
+    
+    # Region
+    region: oregon
+    
+    # Static files
+    staticPublishPath: static
