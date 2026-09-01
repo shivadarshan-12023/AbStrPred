@@ -1,26 +1,12 @@
-
 torch
-
-# Flask & WSGI
-Flask==3.0.0
-gunicorn==21.2.0
-Werkzeug==3.0.1
-
-# Data processing & ML
-numpy>=1.24.0,<2.0.0
-pandas>=2.0.0,<2.2.0
-scikit-learn>=1.3.0,<1.5.0
-joblib>=1.3.0
-
-# Bioinformatics
-biopython>=1.81,<1.84
-
-# Utilities
-requests>=2.31.0
-python-dotenv>=1.0.0
-
-# Optional: For better BLAST performance
-python-lzma>=0.1.0
-
-
-
+Flask
+gunicorn
+Werkzeug
+numpy
+pandas
+scikit-learn
+joblib
+biopython
+requests
+python-dotenv
+python-lzma
