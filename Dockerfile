@@ -1,7 +1,7 @@
 # =========================================================
-# BASE IMAGE
+# BASE IMAGE - Use Python 3.11 (most stable with pandas)
 # =========================================================
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 # =========================================================
 # ENVIRONMENT VARIABLES
@@ -17,7 +17,7 @@ ENV PORT=10000 \
 WORKDIR /app
 
 # =========================================================
-# SYSTEM DEPENDENCIES (optimized for build speed)
+# SYSTEM DEPENDENCIES
 # =========================================================
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ncbi-blast+ \
@@ -27,14 +27,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # =========================================================
-# PYTHON DEPENDENCIES
+# PYTHON DEPENDENCIES - Use pre-built wheels (no compilation)
 # =========================================================
 COPY requirements.txt .
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -r requirements.txt gunicorn
+    pip install --only-binary :all: \
+    numpy \
+    pandas \
+    scikit-learn \
+    biopython && \
+    pip install --no-binary :none: gunicorn flask -r requirements.txt
 
 # =========================================================
-# TEMPORARY DIRECTORIES (created early for consistency)
+# TEMPORARY DIRECTORIES
 # =========================================================
 RUN mkdir -p /app/data /app/temp /app/uploads && \
     chmod 755 /app/data /app/temp /app/uploads
@@ -57,7 +62,7 @@ COPY label_encoder.pkl .
 COPY best_model_LR.sav .
 
 # =========================================================
-# BLAST DATABASE (protein BLAST format)
+# BLAST DATABASE
 # =========================================================
 COPY pathway_db.pdb .
 COPY pathway_db.phr .
@@ -73,24 +78,24 @@ COPY pathway_db.pto .
 COPY pathway_map.csv .
 
 # =========================================================
-# PORT EXPOSURE (Render uses PORT environment variable)
+# PORT EXPOSURE
 # =========================================================
 EXPOSE 10000
 
 # =========================================================
-# HEALTH CHECK (Render-compatible)
+# HEALTH CHECK
 # =========================================================
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://127.0.0.1:${PORT}/health || exit 1
 
 # =========================================================
-# NON-ROOT USER (optional but recommended for Render)
+# NON-ROOT USER
 # =========================================================
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 USER appuser
 
 # =========================================================
-# START APPLICATION (Render-compatible)
+# START APPLICATION
 # =========================================================
 CMD exec gunicorn \
     --bind 0.0.0.0:${PORT} \
