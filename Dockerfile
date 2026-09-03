@@ -1,7 +1,8 @@
 # =========================================================
 # BASE IMAGE
 # =========================================================
-FROM python:3.11-slim
+FROM python:3.10-slim
+
 
 # =========================================================
 # ENVIRONMENT
@@ -19,6 +20,7 @@ WORKDIR /app
 # SYSTEM DEPENDENCIES
 # =========================================================
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ncbi-blast-2.17.0+-aarch64-linux \
     ncbi-blast+ \
     build-essential \
     curl \
